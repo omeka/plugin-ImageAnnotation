@@ -54,21 +54,17 @@ function image_annotation_admin_theme_footer()
     while(loop_files_for_item()) {
         $file = get_current_file();
         if ($file->hasThumbnail()) {
-            image_annotation_display_image($file);
-            image_annotation_annotate($file);
+            image_annotation_display_annotated_image($file,true);
         }
     }
 }
 
-function image_annotation_display_image($imageFile, $imageSize='fullsize')
-{
-    echo display_file($imageFile, array('imageSize' => $imageSize, 'linkToFile'=>false));
-}
-
-function image_annotation_annotate($imageFile, $imageSize='fullsize')
+function image_annotation_display_annotated_image($imageFile, $isEditable=false, $imageSize='fullsize')
 {        
+    echo '<div class="annotated-image">';
+    echo display_file($imageFile, array('imageSize' => $imageSize, 'linkToFile'=>false));
+    echo '</div>';
     // specify the file annotations
-    $isEditable = true;
     $useAjax = false;
     $imageId = $imageFile->id;
     $ajaxPath = CURRENT_BASE_URL . '/image-annotation/ajax/';

@@ -29,6 +29,7 @@ class ImageAnnotation_AnnotationTable extends Omeka_Db_Table
 		} else {
     		$select->where("a.file_id = ?");		    
 		}
+		$select->order('(a.width * a.height) ASC');
 				
 		return $this->fetchObjects($select, array($fileId));        
     }

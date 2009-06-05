@@ -24,6 +24,12 @@ class ImageAnnotation_Annotation extends Omeka_Record
     public $added;
     public $modified;
     
+    public function save()
+    {
+        $this->modified = date ("Y-m-d H:m:s");
+        return parent::save();
+    }
+    
     // Returns whether or not an annotation overlaps another annotation
     public function overlaps($annotation)
     {

@@ -1,3 +1,6 @@
+.annotated-image {
+    margin-bottom: 50px;
+}
 .image-annotate-add {
     background: #fff url(../images/asterisk_yellow.png) no-repeat 3px 3px;
     border: solid 1px #ccc !important;
