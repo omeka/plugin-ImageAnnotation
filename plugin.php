@@ -51,12 +51,44 @@ function image_annotation_javascripts()
 
 function image_annotation_admin_theme_footer()
 {
-    while(loop_files_for_item()) {
+	echo '<div id="annotated-images">';
+	
+	echo '<ul id="annotated-images-thumbs">';
+	$i = 0;
+	while(loop_files_for_item()) {
         $file = get_current_file();
         if ($file->hasThumbnail()) {
-            image_annotation_display_annotated_image($file,true);
+			$i++;
+			echo '<li><a href="#annotated-images-'.$i.'">';
+			echo display_file($file, array('imageSize' => 'square_thumbnail', 'linkToFile' => false));
+			echo '</a></li>';
         }
     }
+	echo '</ul>';
+	echo '<div id="annotated-images-fullsize">';
+    $i = 0;
+	while(loop_files_for_item()) {
+        $file = get_current_file();
+        if ($file->hasThumbnail()) {
+			$i++;
+			echo '<div id="annotated-images-'.$i.'">';
+            image_annotation_display_annotated_image($file,true);
+			echo '</div>';
+        }
+    }
+	echo '</div>';
+	echo '</div>';
+?>
+<script type="text/javascript" charset="utf-8">
+Event.observe(window,'load',function(){
+$$('#annotated-images-thumbs').each(function(tab_group){  
+     new Control.Tabs(tab_group);  
+ });
+});
+
+</script>
+
+<?php
 }
 
 function image_annotation_display_annotated_image($imageFile, $isEditable=false, $imageSize='fullsize')
@@ -82,6 +114,7 @@ function image_annotation_display_annotated_image($imageFile, $isEditable=false,
       jQuery(window).load(function() {
             jQuery("img[src$='files/display/<?php echo $imageId; ?>/<?php echo $imageSize; ?>']").annotateImage(<?php echo json_encode($fileAnnotations); ?>);        
       });
+
     </script>
 <?php    
 }
