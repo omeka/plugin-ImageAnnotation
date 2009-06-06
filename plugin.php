@@ -29,6 +29,7 @@ function image_annotation_install()
       `public` tinyint(4) NOT NULL default '1',
       PRIMARY KEY  (`id`),
       KEY `file_id` (`file_id`),
+      KEY `user_id` (`user_id`),
       KEY `added` (`added`),
       KEY `modified` (`modified`)
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1");
@@ -37,7 +38,7 @@ function image_annotation_install()
 function image_annotation_uninstall()
 {
     $db = get_db();
-    $db->exec("DROP TABLE {$db->prefix}image_annotation_annotations");
+    $db->exec("DROP TABLE `{$db->prefix}image_annotation_annotations`");
 }
 
 function image_annotation_javascripts()
@@ -49,53 +50,63 @@ function image_annotation_javascripts()
     echo '<link rel="stylesheet" media="screen" href="', css('annotation'), '" />';
 }    
 
-function image_annotation_admin_theme_footer()
+function image_annotation_admin_theme_footer($request)
 {
-	echo '<div id="annotated-images">';
-	
-	echo '<ul id="annotated-images-thumbs">';
-	$i = 0;
-	while(loop_files_for_item()) {
+    if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
+        echo image_annotation_display_annotated_image_gallery_for_item($item=null);
+    }
+}
+
+function image_annotation_display_annotated_image_gallery_for_item($item=null)
+{
+    if ($item == null) {
+        $item = get_current_item();
+    }
+    
+    $html = '';
+	$html .= '<div class="annotated-images" id="annotated-images-' . $item->id . '">';
+	$html .= '<ul class="annotated-images-thumbs" id="annotated-images-thumbs-' . $item->id . '">';
+	while(loop_files_for_item($item)) {
         $file = get_current_file();
         if ($file->hasThumbnail()) {
-			$i++;
-			echo '<li><a href="#annotated-images-'.$i.'">';
-			echo display_file($file, array('imageSize' => 'square_thumbnail', 'linkToFile' => false));
-			echo '</a></li>';
+			$html .= '<li><a href="#annotated-images-file-'.$file->id.'">';
+			$html .= display_file($file, array('imageSize' => 'square_thumbnail', 'linkToFile' => false));
+			$html .= '</a></li>';
         }
     }
-	echo '</ul>';
-	echo '<div id="annotated-images-fullsize">';
-    $i = 0;
-	while(loop_files_for_item()) {
+	$html .= '</ul>';
+	$html .= '<div class="annotated-images-fullsize" id="annotated-images-fullsize-' . $item->id . '">';
+	while(loop_files_for_item($item)) {
         $file = get_current_file();
         if ($file->hasThumbnail()) {
-			$i++;
-			echo '<div id="annotated-images-'.$i.'">';
-            image_annotation_display_annotated_image($file,true);
-			echo '</div>';
+			$html .= '<div id="annotated-images-file-' . $file->id .'">';
+            $html .= image_annotation_display_annotated_image($file, true);
+			$html .= '</div>';
         }
     }
-	echo '</div>';
-	echo '</div>';
+	$html .= '</div>';
+	$html .= '</div>';
+	ob_start();
 ?>
 <script type="text/javascript" charset="utf-8">
-Event.observe(window,'load',function(){
-$$('#annotated-images-thumbs').each(function(tab_group){  
-     new Control.Tabs(tab_group);  
- });
-});
-
+    Event.observe(window,'load',function(){
+    $$('#annotated-images-thumbs-<?php echo $item->id; ?>').each(function(tab_group){  
+         new Control.Tabs(tab_group);  
+     });
+    });
 </script>
-
 <?php
+    $html .= ob_get_contents();
+    ob_end_clean();
+    return $html;
 }
 
 function image_annotation_display_annotated_image($imageFile, $isEditable=false, $imageSize='fullsize')
-{        
-    echo '<div class="annotated-image">';
-    echo display_file($imageFile, array('imageSize' => $imageSize, 'linkToFile'=>false));
-    echo '</div>';
+{
+    $html = '';        
+    $html .= '<div class="annotated-image">';
+    $html .= display_file($imageFile, array('imageSize' => $imageSize, 'linkToFile'=>false));
+    $html .= '</div>';
     // specify the file annotations
     $useAjax = false;
     $imageId = $imageFile->id;
@@ -109,12 +120,15 @@ function image_annotation_display_annotated_image($imageFile, $isEditable=false,
         'deleteUrl' => $ajaxPath . "delete-annotation/file_id/" . $imageId . '/',  
         'useAjax' => ($useAjax ? 'true': 'false')   
     );
+    ob_start();
 ?>
-    <script language="javascript">
+<script language="javascript">
       jQuery(window).load(function() {
             jQuery("img[src$='files/display/<?php echo $imageId; ?>/<?php echo $imageSize; ?>']").annotateImage(<?php echo json_encode($fileAnnotations); ?>);        
       });
-
-    </script>
-<?php    
+</script>
+<?php
+    $html .= ob_get_contents();
+    ob_end_clean();
+    return $html;
 }

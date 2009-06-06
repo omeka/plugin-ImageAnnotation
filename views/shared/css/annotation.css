@@ -1,13 +1,26 @@
-#annotated-images {background:#fff;padding:20px; overflow:auto;}
-
-#annotated-images-thumbs {float:left; width: 70px;}
-#annotated-images-thumbs img {width: 70px; height: 70px; margin-bottom:20px;display:block;}
-
-#annotated-images-fullsize {float:right; width: 752px;}
-
+.annotated-images {
+    background:#fff;
+    padding:20px; 
+    overflow:auto;
+}
+.annotated-images-thumbs {
+    float:left; 
+    width: 70px;
+}
+.annotated-images-thumbs img {
+    width: 70px; 
+    height: 70px; 
+    margin-bottom:20px;
+    display:block;
+}
+.annotated-images-fullsize {
+    float:right; 
+    width: 752px;
+}
 .annotated-image {
     margin-bottom: 50px;
 }
+
 .image-annotate-add {
     background: #fff url(../images/asterisk_yellow.png) no-repeat 3px 3px;
     border: solid 1px #ccc !important;
