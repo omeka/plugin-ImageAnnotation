@@ -63,6 +63,10 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null)
         $item = get_current_item();
     }
     
+    if (!$item->hasThumbnail()) {
+        return '';
+    }
+    
     $html = '';
 	$html .= '<div class="annotated-images" id="annotated-images-' . $item->id . '">';
 	$html .= '<ul class="annotated-images-thumbs" id="annotated-images-thumbs-' . $item->id . '">';
