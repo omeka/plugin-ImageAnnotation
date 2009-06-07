@@ -5,17 +5,21 @@
 }
 .annotated-images-thumbs {
     float:left; 
-    width: 70px;
+    width: 90px;
 }
+
 .annotated-images-thumbs img {
     width: 70px; 
     height: 70px; 
-    margin-bottom:20px;
-    display:block;
+	border:10px solid #fff;
 }
+
+.annotated-images-thumbs .active img {border:10px solid #eee;}
 .annotated-images-fullsize {
-    float:right; 
-    width: 752px;
+    float:left;
+	padding:20px 20px 0;
+    width: 712px;
+	background: #eee;
 }
 .annotated-image {
     margin-bottom: 50px;

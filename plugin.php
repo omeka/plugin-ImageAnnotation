@@ -83,7 +83,7 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null)
 	while(loop_files_for_item($item)) {
         $file = get_current_file();
         if ($file->hasThumbnail()) {
-			$html .= '<div id="annotated-images-file-' . $file->id .'">';
+			$html .= '<div class="annotated-images-file" id="annotated-images-file-' . $file->id .'">';
             $html .= image_annotation_display_annotated_image($file, true);
 			$html .= '</div>';
         }
