@@ -24,6 +24,8 @@ class ImageAnnotation_Annotation extends Omeka_Record
     public $added;
     public $modified;
     
+    public $public;
+    
     public function save()
     {
         $this->modified = date ("Y-m-d H:m:s");
