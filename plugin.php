@@ -11,6 +11,7 @@ add_plugin_hook('install', 'image_annotation_install');
 add_plugin_hook('uninstall', 'image_annotation_uninstall');
 add_plugin_hook('admin_theme_header', 'image_annotation_javascripts');
 add_plugin_hook('admin_theme_footer', 'image_annotation_admin_theme_footer');
+add_plugin_hook('define_acl','image_annotation_define_acl');
 
 function image_annotation_install()
 {
@@ -41,13 +42,44 @@ function image_annotation_uninstall()
     $db->exec("DROP TABLE `{$db->prefix}image_annotation_annotations`");
 }
 
-function image_annotation_javascripts()
+function image_annotation_define_acl($acl)
 {
-    echo js('jquery');
-    echo '<script type="text/javascript">jQuery.noConflict();</script>';
-    echo js('jquery-ui-1.7.1');
-    echo js('jquery.annotate');
-    echo '<link rel="stylesheet" media="screen" href="', css('annotation'), '" />';
+    $resourceName = 'ImageAnnotation_Annotations';
+    
+    $resources = array(
+        $resourceName => array('add', 'editSelf', 'editAll', 'deleteSelf', 'deleteAll', 'showPublic', 'showNotPublic')
+    );
+    $acl->loadResourceList($resources);
+
+    $allowList = array(
+        // anyone can view public annotations
+        array(null, $resourceName, 'showPublic'),
+        
+        // researchers can view annotations that are not yet public
+        array(array('researcher', 'contributor', 'admin'), $resourceName, array('showNotPublic')),
+        
+        // contributors and admins can add. edit, and delete their annotations
+        array(array('contributor', 'admin'), $resourceName, array('add', 'editSelf', 'deleteSelf')),
+        
+        // admins can edit and delete other user's annotations
+        array('admin', $resourceName, array('editAll', 'deleteAll')),
+    );
+    if ($acl->hasRole('guest')) {
+        // if Guest Login is installed, guests can add. edit, and delete their annotations
+        $allowList[] = array('guest', $resourceName, array('add', 'editSelf', 'deleteSelf'));
+    }
+    $acl->loadAllowList($allowList);
+}
+
+function image_annotation_javascripts($request)
+{
+    if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
+        echo js('jquery');
+        echo '<script type="text/javascript">jQuery.noConflict();</script>';
+        echo js('jquery-ui-1.7.1');
+        echo js('jquery.annotate');
+        echo '<link rel="stylesheet" media="screen" href="', css('annotation'), '" />';
+    }
 }    
 
 function image_annotation_admin_theme_footer($request)
