@@ -9,10 +9,19 @@
  
 add_plugin_hook('install', 'image_annotation_install');
 add_plugin_hook('uninstall', 'image_annotation_uninstall');
+add_plugin_hook('public_theme_header', 'image_annotation_javascripts');
 add_plugin_hook('admin_theme_header', 'image_annotation_javascripts');
 add_plugin_hook('admin_theme_footer', 'image_annotation_admin_theme_footer');
 add_plugin_hook('define_acl','image_annotation_define_acl');
+add_plugin_hook('config_form', 'image_annotation_config_form');
+add_plugin_hook('config', 'image_annotation_config');
+add_plugin_hook('before_delete_item', 'image_annotation_before_delete_item');
 
+/**
+ * Creates the plugin model tables and sets initial options.
+ * 
+ * @return void
+ */
 function image_annotation_install()
 {
     $db = get_db();
@@ -34,43 +43,54 @@ function image_annotation_install()
       KEY `added` (`added`),
       KEY `modified` (`modified`)
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1");
+    
+    // set default permissions
+    $roleNames = image_annotation_get_acl_role_names();
+    $resourceNames = image_annotation_get_acl_resource_names();
+    foreach($resourceNames as $resourceName) {
+        $permissions = image_annotation_get_acl_permissions($resourceName);
+        foreach ($roleNames as $roleName) {
+            foreach ($permissions as $permission) {
+                $hasPermission = image_annotation_has_permission_by_default($resourceName, $permission, $roleName) ? '1' : '0';
+                $optionName = image_annotation_get_acl_option_name($resourceName, $permission, $roleName);
+                set_option($optionName, $hasPermission);
+            }
+        }
+    }
 }
 
+/**
+ * Removes the plugin model tables and deletes the plugin options.
+ * 
+ * @return void
+ */
 function image_annotation_uninstall()
 {
+    // drop model tables
     $db = get_db();
     $db->exec("DROP TABLE `{$db->prefix}image_annotation_annotations`");
-}
 
-function image_annotation_define_acl($acl)
-{
-    $resourceName = 'ImageAnnotation_Annotations';
-    
-    $resources = array(
-        $resourceName => array('add', 'editSelf', 'editAll', 'deleteSelf', 'deleteAll', 'showPublic', 'showNotPublic')
-    );
-    $acl->loadResourceList($resources);
-
-    $allowList = array(
-        // anyone can view public annotations
-        array(null, $resourceName, 'showPublic'),
-        
-        // researchers can view annotations that are not yet public
-        array(array('researcher', 'contributor', 'admin'), $resourceName, array('showNotPublic')),
-        
-        // contributors and admins can add. edit, and delete their annotations
-        array(array('contributor', 'admin'), $resourceName, array('add', 'editSelf', 'deleteSelf')),
-        
-        // admins can edit and delete other user's annotations
-        array('admin', $resourceName, array('editAll', 'deleteAll')),
-    );
-    if ($acl->hasRole('guest')) {
-        // if Guest Login is installed, guests can add. edit, and delete their annotations
-        $allowList[] = array('guest', $resourceName, array('add', 'editSelf', 'deleteSelf'));
+    // delete options
+    // set default permissions
+    $roleNames = image_annotation_get_acl_role_names();
+    $resourceNames = image_annotation_get_acl_resource_names();
+    foreach($resourceNames as $resourceName) {
+        $permissions = image_annotation_get_acl_permissions($resourceName);
+        foreach ($roleNames as $roleName) {
+            foreach ($permissions as $permission) {
+                $optionName = image_annotation_get_acl_option_name($resourceName, $permission, $roleName);
+                delete_option($optionName);
+            }
+        }
     }
-    $acl->loadAllowList($allowList);
 }
 
+/**
+ * Adds javascripts to the header of the page.
+ * 
+ * @param Zend_Controller_Request_Http $request
+ * @return void
+ */
 function image_annotation_javascripts($request)
 {
     if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
@@ -78,10 +98,18 @@ function image_annotation_javascripts($request)
         echo '<script type="text/javascript">jQuery.noConflict();</script>';
         echo js('jquery-ui-1.7.1');
         echo js('jquery.annotate');
+        echo js('livepipe');
+        echo js('tabs');
         echo '<link rel="stylesheet" media="screen" href="', css('annotation'), '" />';
     }
 }    
 
+/**
+ * Displays an image annotation gallery to the admin theme footer on the view item page.
+ *
+ * @param Zend_Controller_Request_Http $request 
+ * @return void
+ */
 function image_annotation_admin_theme_footer($request)
 {
     if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
@@ -89,7 +117,14 @@ function image_annotation_admin_theme_footer($request)
     }
 }
 
-function image_annotation_display_annotated_image_gallery_for_item($item=null)
+/**
+ * Returns the markup code for an image annotation gallery.
+ *
+ * @param Item $item The item, whose images are to be annotated
+ * @param bool $isEditable Specify whether or not the file's images can be annotated at all.  If false, this overrides plugin permissions.
+ * @return string
+ */
+function image_annotation_display_annotated_image_gallery_for_item($item=null, $isEditable=true)
 {
     if ($item == null) {
         $item = get_current_item();
@@ -116,7 +151,7 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null)
         $file = get_current_file();
         if ($file->hasThumbnail()) {
 			$html .= '<div class="annotated-images-file" id="annotated-images-file-' . $file->id .'">';
-            $html .= image_annotation_display_annotated_image($file, true);
+            $html .= image_annotation_display_annotated_image($file, $isEditable);
 			$html .= '</div>';
         }
     }
@@ -137,8 +172,19 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null)
     return $html;
 }
 
+/**
+ * Returns the markup code for an image annotation gallery to the admin theme footer on the view item page.
+ *
+ * @param File $imageFile The file to be annotated.
+ * @param bool $isEditable Specify whether or not the image can be annotated at all.  If false, this overrides plugin permissions.
+ * @param string $imageSize The size of the image. ('thumbnail', 'square_thumbnail', or 'fullsize') 
+ * @return string
+ */
 function image_annotation_display_annotated_image($imageFile, $isEditable=false, $imageSize='fullsize')
 {
+    // check to make sure the user has permission to add items
+    $isAddable = get_acl()->checkUserPermission('ImageAnnotation_Annotations', 'add') && $isEditable;
+    
     $html = '';        
     $html .= '<div class="annotated-image">';
     $html .= display_file($imageFile, array('imageSize' => $imageSize, 'linkToFile'=>false));
@@ -150,6 +196,7 @@ function image_annotation_display_annotated_image($imageFile, $isEditable=false,
     $fileAnnotations = array( 
         'editable' => ($isEditable ? 'true': 'false'),
         'addButtonText' => 'Add Annotation',
+        'addable' => ($isAddable ? 'true': 'false'),
         'imageId' => $imageId,
         'getUrl' => $ajaxPath . "get-annotation/file_id/" . $imageId . '/',  
         'saveUrl' => $ajaxPath . "save-annotation/file_id/" . $imageId . '/',  
@@ -167,4 +214,353 @@ function image_annotation_display_annotated_image($imageFile, $isEditable=false,
     $html .= ob_get_contents();
     ob_end_clean();
     return $html;
+}
+
+/**
+ * Prepares and renders the plugin's configuration form.
+ * 
+ * @return void
+ */
+function image_annotation_config_form()
+{
+    // start the permissions table
+    echo '<table>';
+
+    // build the table header
+    echo '<tr>';
+    echo '<th>Resource</th>';
+    echo '<th>Permission</th>';
+    $roleNames = image_annotation_get_acl_role_names();
+    foreach($roleNames as $roleName) {
+        echo '<th>' . html_escape($roleName) . '</th>';            
+    }
+    echo '<tr>';
+    
+    $resourceNames = image_annotation_get_acl_resource_names();
+    foreach($resourceNames as $resourceName) {
+        $permissions = image_annotation_get_acl_permissions($resourceName);
+        $isNewResource = true;
+        foreach($permissions as $permission) {
+            // build a row to specify whether each role has a permission for a resource
+            echo '<tr>';
+            if ($isNewResource) {
+                echo '<td>' . html_escape(image_annotation_get_acl_resource_text($resourceName)) . '</td>';
+                $isNewResource = false;                
+            } else {
+                echo '<td></td>';
+            }
+            $permissionText = image_annotation_get_acl_permission_text($permission);
+            echo '<td>' . html_escape($permissionText) . '</td>';
+            foreach ($roleNames as $roleName) {
+                $cbName = 'image_annotation_' . $permission . '[' . $roleName . ']';
+                $cbId = image_annotation_get_acl_option_name($resourceName, $permission, $roleName);
+                $isChecked = (get_option($cbId) == '1') ? true : false;
+                $isDisabled = !image_annotation_get_acl_can_edit_default_permission($resourceName, $permission, $roleName);
+                $cbParams = array('name'=>$cbName, 'id'=>$cbId);
+                if ($isDisabled) {
+                    $cbParams['disabled'] = 'disabled';
+                }
+                echo '<td>' . checkbox($cbParams, $isChecked, '1') . '</td>';
+            }
+        }
+    }
+
+    // close the permissions table
+    echo '</table>';
+}
+
+/** 
+ * Returns whether a plugin permission for a specific resource and roleName 
+ * can be changed from its default.  If false, then no one, not even the super user,
+ * should change the permission for the roleName.
+ * 
+ * @param string $resourceName The name of the resource to be tested
+ * @param string $permission The permission to be tested
+ * @param string $roleName The role name to be tested
+ * @return boolean Whether or not the whether a plugin permission for a specific resource and roleName 
+ * can be changed from its default.
+ */
+function image_annotation_get_acl_can_edit_default_permission($resourceName, $permission, $roleName)
+{
+    switch($resourceName) {
+        case 'ImageAnnotation_Annotations':
+            switch($roleName) {
+                case 'anyone':
+                   switch($permission) {
+                       case 'add':
+                       case 'editSelf':
+                       case 'editAll':
+                       case 'deleteSelf':
+                       case 'deleteAll':
+                           return false;
+                       break;
+                   }
+               break;
+           }
+        break;
+    }
+   
+    return true;
+}
+
+/** 
+ * Prepares and renders the plugin's configuration form.
+ * 
+ * @return void
+ */
+function image_annotation_config()
+{
+    $roleNames = image_annotation_get_acl_role_names();
+    $resourceNames = image_annotation_get_acl_resource_names();
+    foreach($resourceNames as $resourceName) {
+        $permissions = image_annotation_get_acl_permissions($resourceName);
+        foreach ($roleNames as $roleName) {
+            foreach ($permissions as $permission) {
+                $cbName = 'image_annotation_' . $permission;
+                $optionName = image_annotation_get_acl_option_name($resourceName, $permission, $roleName);
+                if ($_POST[$cbName][$roleName] == '1') {
+                    set_option($optionName, '1');    
+                } else {
+                    set_option($optionName, '0');    
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Deletes annotations when an item is deleted
+ * 
+ * @param Item $item
+ * @return void
+ */
+function image_annotation_before_delete_item($item)
+{
+    //delete all annotations for the deleted item
+    $annotations = get_db()->getTable('ImageAnnotation_Annotations')->findByItem($item);
+    foreach($annotations as $annotation) {
+        $annotation->delete();
+    }
+}
+
+/**
+ * Loads the plugin resources and permissions for various roles based on plugin options
+ *
+ * @param Omeka_Acl $acl 
+ * @return void
+ */
+function image_annotation_define_acl($acl)
+{
+    // load the plugin resources
+    $resourceNames = image_annotation_get_acl_resource_names();
+    $resources = array();
+    foreach($resourceNames as $resourceName) {
+        $resources[$resourceName] = image_annotation_get_acl_permissions($resourceName);
+    }
+    $acl->loadResourceList($resources);
+    
+    // load the permissions based on the plugin options
+    $roleNames = image_annotation_get_acl_role_names();
+    foreach($resources as $resourceName => $permissions) {
+        $allowList = array();
+        foreach ($roleNames as $roleName) {
+            $permissionsForRole = array();
+            foreach ($permissions as $permission) {
+                $optionName = image_annotation_get_acl_option_name($resourceName, $permission, $roleName);
+                if (get_option($optionName) == '1') {
+                    $permissionsForRole[] = $permission;
+                }  
+            }
+            // convert 'anyone' role name to null, so that the resource applies to anyone
+            if ($roleName == 'anyone') {
+                $roleName = null;
+            }
+            if (count($permissionsForRole) > 0) {
+                $allowList[] = array($roleName, $resourceName, $permissionsForRole);                
+            }
+        }
+        $acl->loadAllowList($allowList);
+    }
+}
+
+
+/**
+ * Returns the name of the option that specifies whether a role has permission to a resource
+ * 
+ * @param string $resourceName The name of the resource
+ * @param string $permission The name of the permission
+ * @param string $roleName The name of the role
+ * @return string The name of the option that specifies whether a role has a permission to a resource
+ */
+function image_annotation_get_acl_option_name($resourceName, $permission, $roleName)
+{
+    $pluginPrefix = 'image_annotation';
+    return $pluginPrefix . '_' . strtolower($resourceName) . '_' . $permission . '_' . $roleName;
+}
+
+/**
+ * Returns whether or not a role has permission to a resource by default, prior to user specified options.
+ * 
+ * @param string $resourceName The name of the resource
+ * @param string $permission The name of the permission
+ * @param string $roleName The name of the role
+ * @return boolean Whether or not a role has permission to a resource by default, prior to user specified options
+ */
+function image_annotation_has_permission_by_default($resourceName, $permission, $roleName) 
+{
+    switch($resourceName) {
+        case 'ImageAnnotation_Annotations':
+            switch($roleName) {
+                case 'super':
+                case 'admin':
+                    return true;
+                break;
+                
+                case 'contributor':
+                case 'guest':
+                    switch($permission) {
+                        case 'add':
+                        case 'editSelf':
+                        case 'deleteSelf':
+                        case 'showPublic':
+                            return true;
+                        break;
+                    }
+                break;
+                
+                case 'researcher':
+                    switch($permission) {
+                        case 'add':
+                        case 'editSelf':
+                        case 'deleteSelf':
+                        case 'showPublic':
+                        case 'showNotPublic':
+                            return true;
+                        break;
+                    }
+                break;
+                
+                default:
+                    // permissions for every other role
+                    switch($permission) {
+                        case 'showPublic':
+                            return true;
+                        break;
+                    }
+                break;
+            }
+        break;
+    }
+    return false;
+}
+
+/**
+ * Returns the resource text to display on the configuration page for a resourceName
+ * 
+ * @param string $resourceName The name of the resource
+ * @return string The resource text to display on the configuration page for a resourceName
+ */
+function image_annotation_get_acl_resource_text($resourceName)
+{
+    $resourceText = '';
+    switch($resourceName) {
+        case 'ImageAnnotation_Annotations';
+            $resourceText = 'Image Annotations';
+        break;
+    }
+    return $resourceText;
+}
+
+/**
+ * Returns the permission text to display on the configuration page for a permission
+ * 
+ * @param string $permission The name of the permission
+ * @return string The permission text to display on the configuration page for a permission
+ */
+function image_annotation_get_acl_permission_text($permission)
+{
+    $permissionText = '';
+    switch($permission) {
+        case 'add':
+            $permissionText = 'Add Their Own Annotations';
+        break;
+    
+        case 'editSelf':
+            $permissionText = 'Edit Their Own Annotations';
+        break;
+    
+        case 'editAll':
+            $permissionText = "Edit The Annotations Of Other Users";
+        break;
+    
+        case 'deleteSelf':
+            $permissionText = "Delete Their Own Annotations";
+        break;
+    
+        case 'deleteAll':
+            $permissionText = "Delete The Annotations Of Other Users";
+        break;
+    
+        case 'showPublic':
+            $permissionText = "View Public Annotations";
+        break;
+    
+        case 'showNotPublic':
+            $permissionText = "View Private Annotations";
+        break;
+    }
+    return $permissionText;
+}
+
+/**
+ * Returns an array of all of the resource names for the plugin.
+ * 
+ * @return array The resource names for the plugin
+ */
+function image_annotation_get_acl_resource_names()
+{
+    return array('ImageAnnotation_Annotations');
+}
+
+/**
+ * Returns an array of all of the role names for the plugin. 
+ * For the purposes of saving permissions as options, 
+ * it adds an 'anyone' role for any user, although this role is not saved in the database.
+ * 
+ * @return array The role names for the plugin
+ */
+function image_annotation_get_acl_role_names($acl=null) 
+{
+    if (!$acl) {
+        $acl = get_acl();
+    }
+    // return all role names except the super user
+    $roleNames = array_diff($acl->getRoleNames(), array('super'));
+    
+    // add the role name 'anyone' for anyone on the site
+    $roleNames[] = 'anyone';
+    
+    // sort the role names alphabetically
+    sort($roleNames);
+    
+    return $roleNames;
+}
+
+/**
+ * Returns an array of permissions for a plugin resource.
+ * 
+ * @param string $resourceName
+ * @return array The permission for the plugin resource
+ */
+function image_annotation_get_acl_permissions($resourceName)
+{
+    $permissions = array();
+    switch($resourceName) {
+        case 'ImageAnnotation_Annotations':
+        default:
+            $permissions = array('add', 'editSelf', 'editAll', 'deleteSelf', 'deleteAll', 'showPublic', 'showNotPublic');
+        break;
+    }
+
+    return $permissions;
 }

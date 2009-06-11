@@ -22,6 +22,10 @@ class ImageAnnotation_AjaxController extends Omeka_Controller_Action
                 // specify whether the current user has permission to edit the annotation
                 $annotationAsArray['editable'] = $this->hasPermission('editAll') || 
                                                 ($this->hasPermission('editSelf') && current_user()->id == $annotationAsArray['user_id']);
+                
+                // specify whether the current user has permission to delete the annotation
+                $annotationAsArray['deletable'] = $this->hasPermission('deleteAll') || 
+                                                ($this->hasPermission('deleteSelf') && current_user()->id == $annotationAsArray['user_id']);
 
                 $annotationsAsArrays[] = $annotationAsArray;
             }
@@ -91,8 +95,13 @@ class ImageAnnotation_AjaxController extends Omeka_Controller_Action
         $this->view->responseData = $responseData;
     }
     
-    // returns whether the current user has permission to do something on the 
-    // ImageAnnotation_Annotations resource
+    /**
+     * Returns whether the current user has permission to do something 
+     * on an ImageAnnotation_Annotations resource
+     *
+     * @param string $permission 
+     * @return bool Whether the current user has permission
+     */
     private function hasPermission($permission)
     {
         return get_acl()->checkUserPermission('ImageAnnotation_Annotations', $permission);

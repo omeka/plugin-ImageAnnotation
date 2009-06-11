@@ -16,9 +16,10 @@
         this.getUrl = opts.getUrl;
         this.saveUrl = opts.saveUrl;
         this.deleteUrl = opts.deleteUrl;
-        this.editable = opts.editable;
+        this.editable = $.fn.stringToBoolean(opts.editable);
         this.useAjax = opts.useAjax;
         this.notes = opts.notes;
+        this.addable = $.fn.stringToBoolean(opts.addable);        
         this.addButtonText = opts.addButtonText;
         this.imageId = opts.imageId;
 
@@ -58,7 +59,10 @@
         }
 
         // Add the "Add a note" button
-        if (this.editable) {
+        if(this.editable.constructor == String) {
+            alert('this is a String');
+        };
+        if (this.editable && this.addable) {
             this.button = $('<div class="image-annotate-add" id="image-annotate-add-' + this.imageId + '" onclick="return false;">' + this.addButtonText + '</div>');
             this.button.click(function() {
                 $.fn.annotateImage.add(image);
@@ -71,6 +75,11 @@
 
         return this;
     };
+    
+    /** convert string to boolean primitive
+    *
+    **/
+    $.fn.stringToBoolean = function(s) {if(s=='true') {return true;} return false;}
 
     /**
     * Plugin Defaults
@@ -80,6 +89,7 @@
         saveUrl: 'your-save.rails',
         deleteUrl: 'your-delete.rails',
         editable: true,
+        addable: true,
         useAjax: true,
         notes: new Array(),
         addButtonText: 'Add Note',
@@ -384,26 +394,28 @@
             $.fn.annotateImage.createSaveButton(editable, this.image, annotation);
 
             // Add the delete button
-            var del = $('<a class="image-annotate-edit-delete">Delete</a>');
-            del.click(function() {
-                var form = $('#image-annotate-edit-form form');
+            if (editable.note.deletable) {
+                var del = $('<a class="image-annotate-edit-delete">Delete</a>');
+                del.click(function() {
+                    var form = $('#image-annotate-edit-form form');
 
-                $.fn.annotateImage.appendPosition(form, editable)
+                    $.fn.annotateImage.appendPosition(form, editable)
 
-                if (annotation.image.useAjax) {
-                    $.ajax({
-                        url: annotation.image.deleteUrl,
-                        data: form.serialize(),
-                        error: function(e) { alert("An error occured deleting that note.") }
-                    });
-                }
+                    if (annotation.image.useAjax) {
+                        $.ajax({
+                            url: annotation.image.deleteUrl,
+                            data: form.serialize(),
+                            error: function(e) { alert("An error occured deleting that note.") }
+                        });
+                    }
 
-                annotation.image.mode = 'view';
-                editable.destroy();
-                annotation.destroy();
-            });
-            editable.form.append(del);
-
+                    annotation.image.mode = 'view';
+                    editable.destroy();
+                    annotation.destroy();
+                });
+                editable.form.append(del);
+            }
+            
             $.fn.annotateImage.createCancelButton(editable, this.image);
         }
     };

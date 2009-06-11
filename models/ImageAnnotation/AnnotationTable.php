@@ -11,6 +11,22 @@
 
 class ImageAnnotation_AnnotationTable extends Omeka_Db_Table
 {
+    
+    public function findByItem($item, $onlyPublicAnnotations=true)
+    {
+        // get all of the annotations for every thumbnail file associated with the item
+        $annotations = array();
+        if (!$item->hasThumbnail()) {
+            $files = $item->getFiles();
+            foreach($files as $file) {            
+                if ($file->hasThumbnail()) {
+                    $annotations[] = findByFile($file);
+                }
+            }
+        }
+        return $annotations;
+    }
+    
     public function findByFile($file, $onlyPublicAnnotations=true)
     {
         if ($file instanceof File) {
