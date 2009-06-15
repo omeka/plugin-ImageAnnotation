@@ -191,14 +191,14 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null, $
 	ob_start();
 ?>
 <script type="text/javascript" charset="utf-8">
-    Event.observe(window,'load',function(){
-    $$('#annotated-images-thumbs-<?php echo $item->id; ?>').each(function(tab_group){  
-         new Control.Tabs(tab_group, {
-             beforeChange: function(oldTab) {
+    Event.observe(window,'load',function() {
+        $$('#annotated-images-thumbs-<?php echo $item->id; ?>').each(function(tabGroup){  
+            new Control.Tabs(tabGroup, {
+                beforeChange: function(oldTab) {
                 jQuery(".image-annotate-edit-close").click();
-             }
+            }
          });
-     });
+       });
     });
 </script>
 <?php
