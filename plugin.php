@@ -6,9 +6,12 @@
  * @package Omeka
  * @subpackage ImageAnnotation
  **/
+
+define('IMAGE_ANNOTATION_PLUGIN_DIR', dirname(__FILE__));
  
 add_plugin_hook('install', 'image_annotation_install');
 add_plugin_hook('uninstall', 'image_annotation_uninstall');
+add_plugin_hook('define_routes', 'image_annotation_routes');
 add_plugin_hook('public_theme_header', 'image_annotation_javascripts');
 add_plugin_hook('admin_theme_header', 'image_annotation_javascripts');
 add_plugin_hook('admin_theme_footer', 'image_annotation_admin_theme_footer');
@@ -16,6 +19,8 @@ add_plugin_hook('define_acl','image_annotation_define_acl');
 add_plugin_hook('config_form', 'image_annotation_config_form');
 add_plugin_hook('config', 'image_annotation_config');
 add_plugin_hook('before_delete_item', 'image_annotation_before_delete_item');
+add_filter('admin_navigation_main', 'image_annotation_admin_navigation');
+
 
 /**
  * Creates the plugin model tables and sets initial options.
@@ -83,6 +88,32 @@ function image_annotation_uninstall()
             }
         }
     }
+}
+
+/**
+ * Add the routes from the routes.ini file in the plugin directory
+ * 
+ * @return void
+ **/
+function image_annotation_routes($router) 
+{
+    $configIni = new Zend_Config_Ini(IMAGE_ANNOTATION_PLUGIN_DIR .
+    DIRECTORY_SEPARATOR . 'routes.ini', 'routes');
+    $router->addConfig($configIni);
+}
+
+/**
+ * Add the admin navigation for the plugin.
+ *
+ * @return array
+ */
+function image_annotation_admin_navigation($tabs)
+{
+   if (get_acl()->checkUserPermission('ImageAnnotation_Annotations', 'deleteSelf') ||
+       get_acl()->checkUserPermission('ImageAnnotation_Annotations', 'deleteAll')) {
+       $tabs['Image Annotations'] = uri('image-annotation/moderate');    
+   }
+   return $tabs;
 }
 
 /**
@@ -563,4 +594,9 @@ function image_annotation_get_acl_permissions($resourceName)
     }
 
     return $permissions;
+}
+
+function image_annotation_sort_uri($sortByName)
+{
+    return current_uri(array('sort' => $sortByName));
 }

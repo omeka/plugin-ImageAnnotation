@@ -28,7 +28,7 @@ class ImageAnnotation_Annotation extends Omeka_Record
     
     public function save()
     {
-        $this->modified = date ("Y-m-d H:m:s");
+        $this->modified = date("Y-m-d H:i:s");
         return parent::save();
     }
     
@@ -57,5 +57,39 @@ class ImageAnnotation_Annotation extends Omeka_Record
     private function between($b, $a, $c) 
     {
         return $b >= $a && $b <= $c;
+    }
+    
+    public function getUser()
+    {
+        $user = $this->getDb()->getTable('User')->find($this->user_id);
+        return $user;
+    }
+    
+    public function getFile()
+    {
+        $file =  $this->getDb()->getTable('File')->find($this->file_id);
+        return $file;
+    }
+    
+    public function getItem()
+    {
+        $table = $this->getDb()->getTable('Item');
+        $select = $table->getSelect();                
+        $select->joinInner(array('fi' => $this->getDb()->getTableName('File')), "fi.item_id = i.id", array()); 
+        $select->joinInner(array('an' => $this->getDb()->getTableName('ImageAnnotation_Annotation')), "fi.id = an.file_id", array());
+        $select->where("an.id = ?", array($this->id));
+        return $table->fetchObject($select);
+    }
+    
+    /**
+     * Returns whether the current user has permission to do something 
+     * on an ImageAnnotation_Annotations resource
+     *
+     * @param string $permission 
+     * @return bool Whether the current user has permission
+     */
+    static public function hasPermission($permission)
+    {
+        return get_acl()->checkUserPermission('ImageAnnotation_Annotations', $permission);
     }
 }
