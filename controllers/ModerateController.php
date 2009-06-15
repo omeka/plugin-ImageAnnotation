@@ -4,6 +4,7 @@ class ImageAnnotation_ModerateController extends Omeka_Controller_Action
     public function init()
     {
         $this->_modelClass = 'ImageAnnotation_Annotation';
+        $this->_browseRecordsPerPage = 15;
     }
     
     public function browseAction()
