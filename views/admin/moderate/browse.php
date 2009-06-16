@@ -30,7 +30,7 @@
             <td><?php echo html_escape($annotation->getUser()->username); ?></td>
             <td><?php echo link_to_item($itemForAnnotation->id, array(), 'show', $itemForAnnotation); ?></td>
             <td><?php echo html_escape($annotation->text); ?></td>
-            <td><a href="<?php echo ADMIN_BASE_URL . DIRECTORY_SEPARATOR .  'image-annotation'. DIRECTORY_SEPARATOR . 'moderate' . DIRECTORY_SEPARATOR . 'delete' . DIRECTORY_SEPARATOR . $annotation->id; ?>">Delete</a></td>
+            <td><a href="<?php echo ADMIN_BASE_URL . DIRECTORY_SEPARATOR .  'image-annotation'. DIRECTORY_SEPARATOR . 'moderate' . DIRECTORY_SEPARATOR . 'delete' . DIRECTORY_SEPARATOR . $annotation->id; ?>" class="delete">Delete</a></td>
         </tr>
     <?php endforeach; ?>
     </table>    
