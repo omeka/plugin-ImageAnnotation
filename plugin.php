@@ -395,7 +395,7 @@ function image_annotation_define_acl($acl)
     $acl->loadResourceList($resources);
     
     // load the permissions based on the plugin options
-    $roleNames = image_annotation_get_acl_role_names();
+    $roleNames = image_annotation_get_acl_role_names($acl);
     foreach($resources as $resourceName => $permissions) {
         $allowList = array();
         foreach ($roleNames as $roleName) {
@@ -569,6 +569,7 @@ function image_annotation_get_acl_role_names($acl=null)
     if (!$acl) {
         $acl = get_acl();
     }
+    
     // return all role names except the super user
     $roleNames = array_diff($acl->getRoleNames(), array('super'));
     
