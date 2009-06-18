@@ -35,7 +35,7 @@
     <?php endforeach; ?>
     </table>    
     <?php else: ?>
-        <div id="no-annotations">
+        <div id="image-annotate-no-annotations">
             <p>There are no image annotations.
         </div>
     <?php endif; ?>

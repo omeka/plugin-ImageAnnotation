@@ -12,8 +12,8 @@ define('IMAGE_ANNOTATION_PLUGIN_DIR', dirname(__FILE__));
 add_plugin_hook('install', 'image_annotation_install');
 add_plugin_hook('uninstall', 'image_annotation_uninstall');
 add_plugin_hook('define_routes', 'image_annotation_routes');
-add_plugin_hook('public_theme_header', 'image_annotation_javascripts');
-add_plugin_hook('admin_theme_header', 'image_annotation_javascripts');
+add_plugin_hook('public_theme_header', 'image_annotation_public_theme_header');
+add_plugin_hook('admin_theme_header', 'image_annotation_admin_theme_header');
 add_plugin_hook('admin_theme_footer', 'image_annotation_admin_theme_footer');
 add_plugin_hook('define_acl','image_annotation_define_acl');
 add_plugin_hook('config_form', 'image_annotation_config_form');
@@ -117,22 +117,43 @@ function image_annotation_admin_navigation($tabs)
 }
 
 /**
+ * Adds css and javascripts to the header of the public pages.
+ * 
+ * @param Zend_Controller_Request_Http $request
+ * @return void
+ */
+function image_annotation_public_theme_header($request) 
+{
+    image_annotation_javascripts();
+    echo '<link rel="stylesheet" media="screen" href="', css('image-annotation'), '" />';
+}
+
+/**
+ * Adds css and javascripts to the header of the admin pages.
+ * 
+ * @param Zend_Controller_Request_Http $request
+ * @return void
+ */
+function image_annotation_admin_theme_header($request) 
+{
+    image_annotation_javascripts();
+    echo '<link rel="stylesheet" media="screen" href="', css('image-annotation'), '" />';
+}
+
+/**
  * Adds javascripts to the header of the page.
  * 
  * @param Zend_Controller_Request_Http $request
  * @return void
  */
-function image_annotation_javascripts($request)
+function image_annotation_javascripts()
 {
-    if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
-        echo js('jquery');
-        echo '<script type="text/javascript">jQuery.noConflict();</script>';
-        echo js('jquery-ui-1.7.1');
-        echo js('jquery.annotate');
-        echo js('livepipe');
-        echo js('tabs');
-        echo '<link rel="stylesheet" media="screen" href="', css('annotation'), '" />';
-    }
+    echo js('jquery');
+    echo '<script type="text/javascript">jQuery.noConflict();</script>';
+    echo js('jquery-ui-1.7.1');
+    echo js('jquery.annotate');
+    echo js('livepipe');
+    echo js('tabs');
 }    
 
 /**
@@ -601,6 +622,12 @@ function image_annotation_get_acl_permissions($resourceName)
     return $permissions;
 }
 
+/**
+ * Returns the current url with the sort url appended if it is not already there
+ * 
+ * @param string $sortByName
+ * @return string The current url with the sort url appended if it is not already there
+ */
 function image_annotation_sort_uri($sortByName)
 {
     return current_uri(array('sort' => $sortByName));
