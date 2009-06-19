@@ -163,6 +163,10 @@ border:1px solid #999 !important;
 #image-annotate-edit-form a:hover {
     background-color: #fff;
 }
+.image-annotation-edit-area-inner {
+	border:1px solid #ccc; 
+	height: 100%;
+}
 .image-annotate-edit-area {
     border: 1px solid black;
     cursor: move;

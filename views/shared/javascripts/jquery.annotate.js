@@ -24,7 +24,7 @@
         this.imageId = opts.imageId;
 
         // Add the canvas
-        this.canvas = $('<div class="image-annotate-canvas"><div class="image-annotate-view"></div><div class="image-annotate-edit"><div class="image-annotate-edit-area"></div></div></div>');
+        this.canvas = $('<div class="image-annotate-canvas"><div class="image-annotate-view"></div><div class="image-annotate-edit"><div class="image-annotate-edit-area"><div class="image-annotation-edit-area-inner"></div></div></div></div>');
         this.canvas.children('.image-annotate-edit').hide();
         this.canvas.children('.image-annotate-view').hide();
         this.image.after(this.canvas);
