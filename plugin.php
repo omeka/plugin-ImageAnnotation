@@ -124,8 +124,8 @@ function image_annotation_admin_navigation($tabs)
  */
 function image_annotation_public_theme_header($request) 
 {
-    image_annotation_javascripts();
-    echo '<link rel="stylesheet" media="screen" href="', css('image-annotation'), '" />';
+    echo image_annotation_javascripts();
+    echo image_annotation_css('image-annotation', 'public');
 }
 
 /**
@@ -136,25 +136,58 @@ function image_annotation_public_theme_header($request)
  */
 function image_annotation_admin_theme_header($request) 
 {
-    image_annotation_javascripts();
-    echo '<link rel="stylesheet" media="screen" href="', css('image-annotation'), '" />';
+    echo image_annotation_javascripts();
+    echo image_annotation_css('image-annotation', 'admin');
 }
 
 /**
- * Adds javascripts to the header of the page.
+ * Returns the HTML code to embed the javascripts of plugin
  * 
- * @param Zend_Controller_Request_Http $request
- * @return void
+ * @return string The HTML code to embed the javascripts of the plugin
  */
 function image_annotation_javascripts()
 {
-    echo js('jquery');
-    echo '<script type="text/javascript">jQuery.noConflict();</script>';
-    echo js('jquery-ui-1.7.1');
-    echo js('jquery.annotate');
-    echo js('livepipe');
-    echo js('tabs');
+    $html = '';
+    $html .= js('jquery');
+    $html .= '<script type="text/javascript">jQuery.noConflict();</script>';
+    $html .= image_annotation_js('jquery-ui-1.7.1');
+    $html .= image_annotation_js('jquery.annotate');
+    $html .= image_annotation_js('livepipe');
+    $html .= image_annotation_js('tabs');
+    return $html;
 }    
+
+
+/**
+ * Returns HTML code to embed a shared css file of the plugin
+ *  Note: If the controller's module is that of another plugin, 
+ *  then the js() and css() functions will not find this plugin's javascripts or css files.
+ *  This is a bug. Until this bug is fixed we must use image_annotation_js and image_annotation_css
+ * 
+ * @param string $file The name of the css file without the extension.
+ * @param string $themeType The type of theme ('public', 'admin', or 'shared')
+ * @return string The HTML code to embed a shared css file of the plugin
+ */
+function image_annotation_css($file, $themeType='public')
+{
+    $cssURL = WEB_PLUGIN . '/ImageAnnotation/views/' . $themeType . '/css/' . $file . '.css';
+    echo '<link rel="stylesheet" media="screen" href="' . $cssURL . '" />';
+}
+
+/**
+ * Returns HTML code to embed a shared javascript file of the plugin
+ *  Note: If the controller's module is that of another plugin, 
+ *  then the js() and css() functions will not find this plugin's javascripts or css files.
+ *  This is a bug. Until this bug is fixed we must use image_annotation_js and image_annotation_css
+ * 
+ * @param string $file The name of the javascript file without the extension. 
+ * @return string The HTML code to embed a shared javascript file of the plugin
+ */
+function image_annotation_js($file) 
+{
+    $jsURL = WEB_PLUGIN . '/ImageAnnotation/views/shared/javascripts/' . $file . '.js';
+    return '<script type="text/javascript" src="'. $jsURL  .'" charset="utf-8"></script>'."\n";
+}
 
 /**
  * Displays an image annotation gallery to the admin theme footer on the view item page.
