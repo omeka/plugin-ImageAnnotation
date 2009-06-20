@@ -261,7 +261,7 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null, $
 }
 
 /**
- * Returns the markup code for an image annotation gallery to the admin theme footer on the view item page.
+ * Returns the markup code for an image annotation
  *
  * @param File $imageFile The file to be annotated.
  * @param bool $isEditable Specify whether or not the image can be annotated at all.  If false, this overrides plugin permissions.
@@ -270,7 +270,7 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null, $
  */
 function image_annotation_display_annotated_image($imageFile, $isEditable=false, $imageSize='fullsize')
 {
-    // check to make sure the user has permission to add items
+    // check to make sure the user has permission to add annotation
     $isAddable = get_acl()->checkUserPermission('ImageAnnotation_Annotations', 'add') && $isEditable;
     
     $html = '';        
