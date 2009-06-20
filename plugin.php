@@ -49,7 +49,7 @@ function image_annotation_install()
       KEY `modified` (`modified`)
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci AUTO_INCREMENT=1");
     
-    // set default permissions
+    // set default permission options
     $roleNames = image_annotation_get_acl_role_names();
     $resourceNames = image_annotation_get_acl_resource_names();
     foreach($resourceNames as $resourceName) {
@@ -76,7 +76,6 @@ function image_annotation_uninstall()
     $db->exec("DROP TABLE `{$db->prefix}image_annotation_annotations`");
 
     // delete options
-    // set default permissions
     $roleNames = image_annotation_get_acl_role_names();
     $resourceNames = image_annotation_get_acl_resource_names();
     foreach($resourceNames as $resourceName) {
