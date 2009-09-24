@@ -1,7 +1,7 @@
 <?php
 /**
  * @version $Id$
- * @copyright Center for History and New Media, 2007-2009
+ * @copyright Center for History and New Media, 2007-2008
  * @license http://www.gnu.org/licenses/gpl-3.0.txt
  * @package Omeka
  * @subpackage ImageAnnotation
@@ -32,7 +32,7 @@ require_once(IMAGE_ANNOTATION_PLUGIN_DIR . DIRECTORY_SEPARATOR . 'permissions-ma
 function image_annotation_install()
 {
     $db = get_db();
-    $db->exec("CREATE TABLE IF NOT EXISTS `{$db->prefix}image_annotation_annotations` (
+    $db->exec("CREATE TABLE `{$db->prefix}image_annotation_annotations` (
       `id` int(11) unsigned NOT NULL auto_increment,
       `user_id` int(11) unsigned NOT NULL,
       `file_id` int(11) unsigned NOT NULL,
