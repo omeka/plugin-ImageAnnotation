@@ -14,11 +14,11 @@
     if (count($imageannotation_annotations) > 0 ): ?>
     <table>
     <tr>
-        <th><a href="<?php echo image_annotation_sort_uri('id');?>">Id</a></th>
-        <th><a href="<?php echo image_annotation_sort_uri('recent');?>">Modified Date</a></th>
-        <th><a href="<?php echo image_annotation_sort_uri('username');?>">Author</a></th>
-        <th><a href="<?php echo image_annotation_sort_uri('itemid');?>">Item Id</a></th>
-        <th><a href="<?php echo image_annotation_sort_uri('text');?>">Text</a></th>
+        <th><a href="<?php echo html_escape(image_annotation_sort_uri('id'));?>">Id</a></th>
+        <th><a href="<?php echo html_escape(image_annotation_sort_uri('recent'));?>">Modified Date</a></th>
+        <th><a href="<?php echo html_escape(image_annotation_sort_uri('username'));?>">Author</a></th>
+        <th><a href="<?php echo html_escape(image_annotation_sort_uri('itemid'));?>">Item Id</a></th>
+        <th><a href="<?php echo html_escape(image_annotation_sort_uri('text'));?>">Text</a></th>
         <th>Action</th>
     </tr>
     <?php foreach($imageannotation_annotations as $annotation):        
@@ -30,7 +30,7 @@
             <td><?php echo html_escape($annotation->getUser()->username); ?></td>
             <td><?php echo link_to_item($itemForAnnotation->id, array(), 'show', $itemForAnnotation); ?></td>
             <td><?php echo html_escape($annotation->text); ?></td>
-            <td><a href="<?php echo ADMIN_BASE_URL .  '/image-annotation/moderate/delete/' . $annotation->id; ?>" class="delete">Delete</a></td>
+            <td><a href="<?php echo html_escape(ADMIN_BASE_URL .  '/image-annotation/moderate/delete/' . $annotation->id); ?>" class="delete">Delete</a></td>
         </tr>
     <?php endforeach; ?>
     </table>    

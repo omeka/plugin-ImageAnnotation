@@ -151,7 +151,7 @@ function image_annotation_javascripts()
 function image_annotation_css($file, $themeType='public')
 {
     $cssURL = WEB_PLUGIN . '/ImageAnnotation/views/' . $themeType . '/css/' . $file . '.css';
-    echo '<link rel="stylesheet" media="screen" href="' . $cssURL . '" />';
+    echo '<link rel="stylesheet" media="screen" href="' . html_escape($cssURL) . '" />';
 }
 
 /**
@@ -166,7 +166,7 @@ function image_annotation_css($file, $themeType='public')
 function image_annotation_js($file) 
 {
     $jsURL = WEB_PLUGIN . '/ImageAnnotation/views/shared/javascripts/' . $file . '.js';
-    return '<script type="text/javascript" src="'. $jsURL  .'" charset="utf-8"></script>'."\n";
+    return '<script type="text/javascript" src="'. html_escape($jsURL)  .'" charset="utf-8"></script>'."\n";
 }
 
 /**
