@@ -104,8 +104,21 @@ function image_annotation_admin_navigation($tabs)
  */
 function image_annotation_public_theme_header($request) 
 {
-    echo image_annotation_javascripts();
-    echo image_annotation_css('image-annotation', 'public');
+    if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
+        if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
+            $view = __v();
+            $scripts = $view->headScript();
+            $scripts->appendFile(web_path_to('jquery'));
+            $scripts->appendScript('jQuery.noConflict');
+            $scripts->appendScript(web_path_to('jquery.annotate'));
+            
+            $links = $view->headLink();
+            $links->appendStylesheet(css('image-annotation'));
+        } else {
+            echo image_annotation_javascripts();
+            echo image_annotation_css('image-annotation', 'public');
+        }
+    }
 }
 
 /**
@@ -116,8 +129,21 @@ function image_annotation_public_theme_header($request)
  */
 function image_annotation_admin_theme_header($request) 
 {
-    echo image_annotation_javascripts();
-    echo image_annotation_css('image-annotation', 'admin');
+    if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
+        if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
+            $view = __v();
+            $scripts = $view->headScript();
+            $scripts->appendFile(web_path_to('jquery'));
+            $scripts->appendScript('jQuery.noConflict');
+            $scripts->appendScript(web_path_to('jquery.annotate'));
+
+            $links = $view->headLink();
+            $links->appendStylesheet(css('image-annotation'));
+        } else {
+            echo image_annotation_javascripts();
+            echo image_annotation_css('image-annotation', 'admin');
+        }
+    }
 }
 
 /**
