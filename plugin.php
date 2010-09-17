@@ -89,8 +89,8 @@ function image_annotation_routes($router)
  */
 function image_annotation_admin_navigation($tabs)
 {
-   if (get_acl()->checkUserPermission('ImageAnnotation_Annotations', 'deleteSelf') ||
-       get_acl()->checkUserPermission('ImageAnnotation_Annotations', 'deleteAll')) {
+   if (has_permission('ImageAnnotation_Annotations', 'deleteSelf') ||
+       has_permission('ImageAnnotation_Annotations', 'deleteAll')) {
        $tabs['Image Annotations'] = uri('image-annotation/moderate');    
    }
    return $tabs;
