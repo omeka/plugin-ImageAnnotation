@@ -3,7 +3,11 @@ class ImageAnnotation_ModerateController extends Omeka_Controller_Action
 {
     public function init()
     {
-        $this->_modelClass = 'ImageAnnotation_Annotation';
+        if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
+            $this->_helper->db->setDefaultModelName('ImageAnnotation_Annotation');
+        } else {
+            $this->_modelClass = 'ImageAnnotation_Annotation';
+        }
         $this->_browseRecordsPerPage = 10;
     }
     

@@ -105,19 +105,8 @@ function image_annotation_admin_navigation($tabs)
 function image_annotation_public_theme_header($request) 
 {
     if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
-        if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
-            $view = __v();
-            $scripts = $view->headScript();
-            $scripts->appendFile(web_path_to('jquery'));
-            $scripts->appendScript('jQuery.noConflict');
-            $scripts->appendScript(web_path_to('jquery.annotate'));
-            
-            $links = $view->headLink();
-            $links->appendStylesheet(css('image-annotation'));
-        } else {
-            echo image_annotation_javascripts();
-            echo image_annotation_css('image-annotation', 'public');
-        }
+        echo image_annotation_javascripts();
+        echo image_annotation_css('image-annotation', 'public');
     }
 }
 
@@ -133,10 +122,10 @@ function image_annotation_admin_theme_header($request)
         if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
             $view = __v();
             $scripts = $view->headScript();
-            $scripts->appendFile(web_path_to('jquery'));
-            $scripts->appendScript('jQuery.noConflict');
-            $scripts->appendScript(web_path_to('jquery.annotate'));
-
+            $scripts->appendFile(web_path_to('javascripts/jquery.js')); 
+            $scripts->appendScript('jQuery.noConflict();');
+            $scripts->appendFile(web_path_to('javascripts/jquery-ui.js'));
+            $scripts->appendFile(web_path_to('javascripts/jquery.annotate.js'));
             $links = $view->headLink();
             $links->appendStylesheet(css('image-annotation'));
         } else {
@@ -278,7 +267,7 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null, $
 function image_annotation_display_annotated_image($imageFile, $isEditable=false, $imageSize='fullsize')
 {
     // check to make sure the user has permission to add annotation
-    $isAddable = get_acl()->checkUserPermission('ImageAnnotation_Annotations', 'add'); //&& $isEditable;
+    $isAddable = has_permission('ImageAnnotation_Annotations', 'add'); //&& $isEditable;
         
     $html = '';        
     $html .= '<div class="annotated-image">';

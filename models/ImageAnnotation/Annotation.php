@@ -90,6 +90,12 @@ class ImageAnnotation_Annotation extends Omeka_Record
      */
     static public function hasPermission($permission)
     {
-        return get_acl()->checkUserPermission('ImageAnnotation_Annotations', $permission);
+        $acl = get_acl();
+        $user = current_user();
+        if ($acl && $user) {
+            return $acl->isAllowed($user->role, 'ImageAnnotation_Annotations', $permission);
+        } else {
+            return true;
+        }
     }
 }
