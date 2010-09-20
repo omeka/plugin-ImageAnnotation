@@ -121,13 +121,8 @@ function image_annotation_admin_theme_header($request)
     if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
         if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
             $view = __v();
-            $scripts = $view->headScript();
-            $scripts->appendFile(web_path_to('javascripts/jquery.js')); 
-            $scripts->appendScript('jQuery.noConflict();');
-            $scripts->appendFile(web_path_to('javascripts/jquery-ui.js'));
-            $scripts->appendFile(web_path_to('javascripts/jquery.annotate.js'));
-            $links = $view->headLink();
-            $links->appendStylesheet(css('image-annotation'));
+            $view->headScript()->appendFile(web_path_to('javascripts/jquery.annotate.js'));
+            $view->headLink()->appendStylesheet(css('image-annotation'));
         } else {
             echo image_annotation_javascripts();
             echo image_annotation_css('image-annotation', 'admin');
@@ -143,9 +138,6 @@ function image_annotation_admin_theme_header($request)
 function image_annotation_javascripts()
 {
     $html = '';
-    $html .= js('jquery');
-    $html .= '<script type="text/javascript">jQuery.noConflict();</script>';
-    $html .= image_annotation_js('jquery-ui-1.7.1');
     $html .= image_annotation_js('jquery.annotate');
     $html .= image_annotation_js('livepipe');
     $html .= image_annotation_js('tabs');
