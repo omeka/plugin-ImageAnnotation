@@ -321,7 +321,8 @@ function image_annotation_config()
 function image_annotation_before_delete_item($item)
 {
     //delete all annotations for the deleted item
-    $annotations = get_db()->getTable('ImageAnnotation_Annotations')->findByItem($item);
+    $table = get_db()->getTable('ImageAnnotationAnnotation');
+    $annotations = $table->findByItem($item);
     foreach($annotations as $annotation) {
         $annotation->delete();
     }

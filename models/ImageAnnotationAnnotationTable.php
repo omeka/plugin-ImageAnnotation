@@ -9,9 +9,8 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.txt
  **/
 
-class ImageAnnotation_AnnotationTable extends Omeka_Db_Table
+class ImageAnnotationAnnotationTable extends Omeka_Db_Table
 {
-    
     public function applySearchFilters($select, $params)
     {
         foreach($params as $paramName => $paramValue) {
@@ -88,15 +87,15 @@ class ImageAnnotation_AnnotationTable extends Omeka_Db_Table
         }
                 
         $db = $this->getDb();
-		$select = new Omeka_Db_Select;
-		$select->from(array('a'=>$db->ImageAnnotation_Annotation), array('a.*'));
-		if ($onlyPublicAnnotations) {
-		    $select->where("a.file_id = ? AND a.public = TRUE");
-		} else {
-    		$select->where("a.file_id = ?");		    
-		}
-		$select->order('(a.width * a.height) ASC');
-				
-		return $this->fetchObjects($select, array($fileId));        
+        $select = new Omeka_Db_Select;
+        $select->from(array('a'=>$db->ImageAnnotationAnnotation), array('a.*'));
+        if ($onlyPublicAnnotations) {
+            $select->where("a.file_id = ? AND a.public = TRUE");
+        } else {
+            $select->where("a.file_id = ?");
+        }
+        $select->order('(a.width * a.height) ASC');
+
+        return $this->fetchObjects($select, array($fileId));
     }
 }

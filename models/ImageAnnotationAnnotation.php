@@ -9,7 +9,7 @@
  * @license http://www.gnu.org/licenses/gpl-3.0.txt
  **/
 
-class ImageAnnotation_Annotation extends Omeka_Record
+class ImageAnnotationAnnotation extends Omeka_Record
 {
     public $user_id;
     public $file_id;
@@ -75,8 +75,8 @@ class ImageAnnotation_Annotation extends Omeka_Record
     {
         $table = $this->getDb()->getTable('Item');
         $select = $table->getSelect();                
-        $select->joinInner(array('fi' => $this->getDb()->getTableName('File')), "fi.item_id = i.id", array()); 
-        $select->joinInner(array('an' => $this->getDb()->getTableName('ImageAnnotation_Annotation')), "fi.id = an.file_id", array());
+        $select->joinInner(array('fi' => $this->File), "fi.item_id = i.id", array()); 
+        $select->joinInner(array('an' => $this->ImageAnnotationAnnotation), "fi.id = an.file_id", array());
         $select->where("an.id = ?", array($this->id));
         return $table->fetchObject($select);
     }
