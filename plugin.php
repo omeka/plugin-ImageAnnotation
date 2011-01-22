@@ -12,8 +12,8 @@ define('IMAGE_ANNOTATION_PLUGIN_DIR', dirname(__FILE__));
 add_plugin_hook('install', 'image_annotation_install');
 add_plugin_hook('uninstall', 'image_annotation_uninstall');
 add_plugin_hook('define_routes', 'image_annotation_routes');
-add_plugin_hook('public_theme_header', 'image_annotation_public_theme_header');
-add_plugin_hook('admin_theme_header', 'image_annotation_admin_theme_header');
+add_plugin_hook('public_theme_header', 'image_annotation_header');
+add_plugin_hook('admin_theme_header', 'image_annotation_header');
 add_plugin_hook('admin_theme_footer', 'image_annotation_admin_theme_footer');
 add_plugin_hook('define_acl','image_annotation_define_acl');
 add_plugin_hook('config_form', 'image_annotation_config_form');
@@ -102,78 +102,12 @@ function image_annotation_admin_navigation($tabs)
  * @param Zend_Controller_Request_Http $request
  * @return void
  */
-function image_annotation_public_theme_header($request) 
+function image_annotation_header($request) 
 {
     if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
-        echo image_annotation_javascripts();
-        echo image_annotation_css('image-annotation', 'public');
+        queue_js('jquery.annotate');
+        queue_css('image-annotation');
     }
-}
-
-/**
- * Adds css and javascripts to the header of the admin pages.
- * 
- * @param Zend_Controller_Request_Http $request
- * @return void
- */
-function image_annotation_admin_theme_header($request) 
-{
-    if ($request->getControllerName() == 'items' && $request->getActionName() == 'show') {
-        if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
-            $view = __v();
-            $view->headScript()->appendFile(web_path_to('javascripts/jquery.annotate.js'));
-            $view->headLink()->appendStylesheet(css('image-annotation'));
-        } else {
-            echo image_annotation_javascripts();
-            echo image_annotation_css('image-annotation', 'admin');
-        }
-    }
-}
-
-/**
- * Returns the HTML code to embed the javascripts of plugin
- * 
- * @return string The HTML code to embed the javascripts of the plugin
- */
-function image_annotation_javascripts()
-{
-    $html = '';
-    $html .= image_annotation_js('jquery.annotate');
-    $html .= image_annotation_js('livepipe');
-    $html .= image_annotation_js('tabs');
-    return $html;
-}    
-
-
-/**
- * Returns HTML code to embed a shared css file of the plugin
- *  Note: If the controller's module is that of another plugin, 
- *  then the js() and css() functions will not find this plugin's javascripts or css files.
- *  This is a bug. Until this bug is fixed we must use image_annotation_js and image_annotation_css
- * 
- * @param string $file The name of the css file without the extension.
- * @param string $themeType The type of theme ('public', 'admin', or 'shared')
- * @return string The HTML code to embed a shared css file of the plugin
- */
-function image_annotation_css($file, $themeType='public')
-{
-    $cssURL = WEB_PLUGIN . '/ImageAnnotation/views/' . $themeType . '/css/' . $file . '.css';
-    echo '<link rel="stylesheet" media="screen" href="' . html_escape($cssURL) . '" />';
-}
-
-/**
- * Returns HTML code to embed a shared javascript file of the plugin
- *  Note: If the controller's module is that of another plugin, 
- *  then the js() and css() functions will not find this plugin's javascripts or css files.
- *  This is a bug. Until this bug is fixed we must use image_annotation_js and image_annotation_css
- * 
- * @param string $file The name of the javascript file without the extension. 
- * @return string The HTML code to embed a shared javascript file of the plugin
- */
-function image_annotation_js($file) 
-{
-    $jsURL = WEB_PLUGIN . '/ImageAnnotation/views/shared/javascripts/' . $file . '.js';
-    return '<script type="text/javascript" src="'. html_escape($jsURL)  .'" charset="utf-8"></script>'."\n";
 }
 
 /**
@@ -231,15 +165,13 @@ function image_annotation_display_annotated_image_gallery_for_item($item=null, $
 	$html .= '</div>';
 	ob_start();
 ?>
-<script type="text/javascript" charset="utf-8">
-    Event.observe(window,'load',function() {
-        $$('#annotated-images-thumbs-<?php echo $item->id; ?>').each(function(tabGroup){  
-            new Control.Tabs(tabGroup, {
-                beforeChange: function(oldTab) {
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        jQuery('#annotated-images-thumbs-<?php echo $item->id; ?>').tabs({
+            select: function() {
                 jQuery(".image-annotate-edit-close").click();
             }
-         });
-       });
+        });
     });
 </script>
 <?php
@@ -282,9 +214,9 @@ function image_annotation_display_annotated_image($imageFile, $isEditable=false,
     ob_start();
 ?>
 <script language="javascript">
-      jQuery(window).load(function() {
-            jQuery("img[src$='files/display/<?php echo $imageId; ?>/<?php echo $imageSize; ?>']").annotateImage(<?php echo json_encode($fileAnnotations); ?>);        
-      });
+    jQuery(window).load(function() {
+        jQuery('.annotated-images img.full').annotateImage(<?php echo json_encode($fileAnnotations); ?>);        
+    });
 </script>
 <?php
     $html .= ob_get_contents();

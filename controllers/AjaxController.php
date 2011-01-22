@@ -8,45 +8,47 @@ class ImageAnnotation_AjaxController extends Omeka_Controller_Action
   
         // make sure the current user can view public annotations
         $annotationsAsArrays = array();
-        if (ImageAnnotation_Annotation::hasPermission('showPublic')) {
+        if (ImageAnnotationAnnotation::hasPermission('showPublic')) {
             // check to see if the current user can view non-public annotations
-            $onlyPublicAnnotations = !ImageAnnotation_Annotation::hasPermission('showNotPublic');
+            $onlyPublicAnnotations = !ImageAnnotationAnnotation::hasPermission('showNotPublic');
 
             // get the annotations
-            $annotations = get_db()->getTable('ImageAnnotation_Annotation')->findByFile($fileId, $onlyPublicAnnotations);
+            $annotations = get_db()->getTable('ImageAnnotationAnnotation')->findByFile($fileId, $onlyPublicAnnotations);
         
             // convert the annotations into arrays
             foreach($annotations as $annotation) {
                 $annotationAsArray = $annotation->toArray();
 
                 // specify whether the current user has permission to edit the annotation
-                $annotationAsArray['editable'] = ImageAnnotation_Annotation::hasPermission('editAll') || 
-                                                (ImageAnnotation_Annotation::hasPermission('editSelf') && current_user()->id == $annotationAsArray['user_id']);
+                $annotationAsArray['editable'] = ImageAnnotationAnnotation::hasPermission('editAll') 
+                    || (ImageAnnotationAnnotation::hasPermission('editSelf') && current_user()->id == $annotationAsArray['user_id']);
                 
                 // specify whether the current user has permission to delete the annotation
-                $annotationAsArray['deletable'] = ImageAnnotation_Annotation::hasPermission('deleteAll') || 
-                                                (ImageAnnotation_Annotation::hasPermission('deleteSelf') && current_user()->id == $annotationAsArray['user_id']);
+                $annotationAsArray['deletable'] = ImageAnnotationAnnotation::hasPermission('deleteAll') || 
+                                                (ImageAnnotationAnnotation::hasPermission('deleteSelf') && current_user()->id == $annotationAsArray['user_id']);
 
                 $annotationsAsArrays[] = $annotationAsArray;
             }
         }
 
-        // send the annotation data to the view
-        $this->view->annotations = $annotationsAsArrays;
+        // send the annotation data
+        $this->_helper->json($annotationsAsArrays);
     }
     
     public function deleteAnnotationAction()
     {
         // get the annotation to delete
         $annotationId = $this->_getParam('id');
-        $annotation = get_db()->getTable('ImageAnnotation_Annotation')->find($annotationId);      
+        $annotation = get_db()->getTable('ImageAnnotationAnnotation')->find($annotationId);      
         
         // make sure the user has permission to delete the annotation
-        if (ImageAnnotation_Annotation::hasPermission('deleteAll') ||
-           (ImageAnnotation_Annotation::hasPermission('deleteSelf') && current_user()->id == $annotation->user_id)) {
+        if (ImageAnnotationAnnotation::hasPermission('deleteAll') ||
+           (ImageAnnotationAnnotation::hasPermission('deleteSelf') && current_user()->id == $annotation->user_id)) {
                // delete the annotation
                $annotation->delete();            
         }
+        
+        $this->_helper->viewRenderer->setNoRender();
     }
     
     public function saveAnnotationAction()
@@ -56,17 +58,17 @@ class ImageAnnotation_AjaxController extends Omeka_Controller_Action
         $annotation = null;
         if ($annotationId == 'new') {
             // make sure the current user can add a new annotation
-            if (ImageAnnotation_Annotation::hasPermission('add')) {
+            if (ImageAnnotationAnnotation::hasPermission('add')) {
                 //create a new annotation
-                $annotation = new ImageAnnotation_Annotation;
+                $annotation = new ImageAnnotationAnnotation;
             }
         } else {
             //get the existing annotation
-            $annotation = get_db()->getTable('ImageAnnotation_Annotation')->find($annotationId);      
+            $annotation = get_db()->getTable('ImageAnnotationAnnotation')->find($annotationId);      
         
             // make sure the current user can edit the annotation
-            if (!(ImageAnnotation_Annotation::hasPermission('editAll') || 
-               (ImageAnnotation_Annotation::hasPermission('editSelf') && current_user()->id == $annotation->user_id))) {
+            if (!(ImageAnnotationAnnotation::hasPermission('editAll') || 
+               (ImageAnnotationAnnotation::hasPermission('editSelf') && current_user()->id == $annotation->user_id))) {
                    $annotation = null;
             }
         }
@@ -92,6 +94,6 @@ class ImageAnnotation_AjaxController extends Omeka_Controller_Action
             $responseData = array();
         }
         
-        $this->view->responseData = $responseData;
+        $this->_helper->json(responseData);
     }
 }

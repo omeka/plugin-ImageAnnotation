@@ -4,9 +4,9 @@ class ImageAnnotation_ModerateController extends Omeka_Controller_Action
     public function init()
     {
         if (version_compare(OMEKA_VERSION, '2.0-dev', '>=')) {
-            $this->_helper->db->setDefaultModelName('ImageAnnotation_Annotation');
+            $this->_helper->db->setDefaultModelName('ImageAnnotationAnnotation');
         } else {
-            $this->_modelClass = 'ImageAnnotation_Annotation';
+            $this->_modelClass = 'ImageAnnotationAnnotation';
         }
         $this->_browseRecordsPerPage = 10;
     }
@@ -14,8 +14,8 @@ class ImageAnnotation_ModerateController extends Omeka_Controller_Action
     public function browseAction()
     {
         // only show the annotations that the user has permission to edit
-        if (!ImageAnnotation_Annotation::hasPermission('editAll')) {
-            if (ImageAnnotation_Annotation::hasPermission('editSelf')) {
+        if (!ImageAnnotationAnnotation::hasPermission('editAll')) {
+            if (ImageAnnotationAnnotation::hasPermission('editSelf')) {
                 $this->_setParam('by_user', $this->getCurrentUser()->id);                            
             } else {
                 // the user does not have permission to edit any annotations,
@@ -31,11 +31,11 @@ class ImageAnnotation_ModerateController extends Omeka_Controller_Action
     {        
         // get the annotation to delete
         $annotationId = $this->_getParam('id');
-        $annotation = get_db()->getTable('ImageAnnotation_Annotation')->find($annotationId);      
+        $annotation = get_db()->getTable('ImageAnnotationAnnotation')->find($annotationId);      
         
         // make sure the user has permission to delete the annotation
-        if (ImageAnnotation_Annotation::hasPermission('deleteAll') ||
-           (ImageAnnotation_Annotation::hasPermission('deleteSelf') && current_user()->id == $annotation->user_id)) {
+        if (ImageAnnotationAnnotation::hasPermission('deleteAll') ||
+           (ImageAnnotationAnnotation::hasPermission('deleteSelf') && current_user()->id == $annotation->user_id)) {
                // delete the annotation
                $annotation->delete();            
         }
