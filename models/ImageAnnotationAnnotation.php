@@ -73,10 +73,12 @@ class ImageAnnotationAnnotation extends Omeka_Record
     
     public function getItem()
     {
-        $table = $this->getDb()->getTable('Item');
-        $select = $table->getSelect();                
-        $select->joinInner(array('fi' => $this->File), "fi.item_id = i.id", array()); 
-        $select->joinInner(array('an' => $this->ImageAnnotationAnnotation), "fi.id = an.file_id", array());
+        $db = $this->getDb();
+        $table = $db->getTable('Item');
+        $select = $table->getSelect();
+
+        $select->joinInner(array('fi' => $db->File), "fi.item_id = i.id", array()); 
+        $select->joinInner(array('an' => $db->ImageAnnotationAnnotation), "fi.id = an.file_id", array());
         $select->where("an.id = ?", array($this->id));
         return $table->fetchObject($select);
     }

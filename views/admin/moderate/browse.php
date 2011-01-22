@@ -1,5 +1,5 @@
 <?php head(array('title'=>'Browse Image Annotations','content_class' => 'horizontal-nav', 'bodyclass'=>'items primary browse-items')); ?>
-<h1>Browse Image Annotations (<?php echo count($imageannotation_annotations);?> annotations total)</h1>
+<h1>Browse Image Annotations (<?php echo count($imageannotationannotations);?> annotations total)</h1>
 <div id="primary">
 	<?php echo flash(); ?>
 	
@@ -11,7 +11,7 @@
 		<div class="pagination"><?php echo pagination_links(); ?></div>
 	</div>
 <?php
-    if (count($imageannotation_annotations) > 0 ): ?>
+    if (count($imageannotationannotations) > 0 ): ?>
     <table>
     <tr>
         <th><a href="<?php echo html_escape(image_annotation_sort_uri('id'));?>">Id</a></th>
@@ -21,7 +21,7 @@
         <th><a href="<?php echo html_escape(image_annotation_sort_uri('text'));?>">Text</a></th>
         <th>Action</th>
     </tr>
-    <?php foreach($imageannotation_annotations as $annotation):        
+    <?php foreach($imageannotationannotations as $annotation):        
         $itemForAnnotation = $annotation->getItem();
     ?>
         <tr>
