@@ -155,6 +155,9 @@ class ImageAnnotationAbstractPermissionsManager
             $resources[$resourceName] = $this->getPermissionsForResource($resourceName);
         }
         $acl->loadResourceList($resources);
+
+        // Clear out permissions for the admin role so they can be customized.
+        $acl->deny('admin', $resourceNames);
             
         // load the permissions based on the plugin options
         $roleNames = $this->getRoleNames($acl);
@@ -168,6 +171,7 @@ class ImageAnnotationAbstractPermissionsManager
                         $permissionsForRole[] = $permission;
                     }  
                 }
+
                 // convert 'anyone' role name to null, so that the resource applies to anyone
                 if ($roleName == 'anyone') {
                     $roleName = null;
