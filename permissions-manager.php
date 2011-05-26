@@ -322,13 +322,6 @@ class ImageAnnotationAbstractPermissionsManager
         if (!$acl) {
             $acl = get_acl();
         }
-        
-        // HACK: if the GuestLogin plugin is active, and the
-        // 'guest' role has not been added by the GuestLogin plugin, add it.
-        // Remove this, once we load plugins in an order, where the dependencies are loaded first
-        if (get_plugin_broker()->isActive('GuestLogin') && !$acl->hasRole('guest')) {
-            $acl->addRole(new Zend_Acl_Role('guest'));
-        }
             
         // return all role names except the super user and 'anyone'
         $roleNames = array_diff($acl->getRoleNames(), array('super', 'anyone'));
@@ -337,7 +330,7 @@ class ImageAnnotationAbstractPermissionsManager
         $roleNames[] = 'anyone';
     
         // sort the role names alphabetically
-        sort($roleNames);
+        // sort($roleNames);
     
         return $roleNames;
     }
